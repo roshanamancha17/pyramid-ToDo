@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground: 23 23 23;
+  --surface: 255 255 255;
+  --surface-2: 245 245 247;
+  --border: 229 229 234;
+  --muted: 113 113 122;
+  --accent-fg: 255 255 255;
+}
+
+/* Light is the default palette above. Dark overrides via [data-theme="dark"]. */
+[data-theme='dark'] {
+  --foreground: 250 250 250;
+  --surface: 24 24 27;
+  --surface-2: 39 39 42;
+  --border: 63 63 70;
+  --muted: 161 161 170;
+}
+
+/* Accent / color-mode swatches, matching the "Color Mode" settings dropdown */
+[data-color='amber'] {
+  --accent: 245 158 11;
+}
+[data-color='blue'] {
+  --accent: 99 102 241;
+}
+[data-color='pink'] {
+  --accent: 236 72 153;
+}
+[data-color='rose'] {
+  --accent: 244 63 94;
+}
+[data-color='emerald'] {
+  --accent: 16 185 129;
+}
+[data-color='black'] {
+  --accent: 23 23 23;
+  --accent-fg: 255 255 255;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: rgb(var(--surface-2));
+  color: rgb(var(--foreground));
+}
+
+* {
+  border-color: rgb(var(--border));
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--border));
+  border-radius: 9999px;
+}

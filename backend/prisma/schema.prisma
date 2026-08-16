@@ -1,0 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AuthProvider {
+  GUEST
+  GOOGLE
+}
+
+enum ThemeMode {
+  LIGHT
+  DARK
+}
+
+enum ColorMode {
+  AMBER
+  BLUE
+  PINK
+  ROSE
+  EMERALD
+  BLACK
+}
+
+enum TaskStatus {
+  TODO
+  DOING
+  COMPLETED
+  ON_HOLD
+}
+
+enum TaskPriority {
+  NO_PRIORITY
+  URGENT
+  HIGH
+  MEDIUM
+  LOW
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  name          String?
+  username      String?      @unique
+  title         String?
+  avatarUrl     String?
+  provider      AuthProvider @default(GUEST)
+  isGuest       Boolean      @default(true)
+  themeMode     ThemeMode    @default(LIGHT)
+  colorMode     ColorMode    @default(BLUE)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  ownedProjects Project[]      @relation("ProjectLead")
+  ledProjects   Project[]      @relation("ProjectOwner")
+  tasksReported Task[]         @relation("TaskReporter")
+  taskMembers   TaskMember[]
+  subtaskMembers SubtaskMember[]
+  comments      Comment[]
+  activityLogs  ActivityLog[]
+
+  @@map("users")
+}
+
+model Project {
+  id        String       @id @default(cuid())
+  name      String
+  priority  TaskPriority @default(NO_PRIORITY)
+  dueDate   DateTime?
+  ownerId   String
+  owner     User         @relation("ProjectOwner", fields: [ownerId], references: [id])
+  leadId    String?
+  lead      User?        @relation("ProjectLead", fields: [leadId], references: [id])
+  tasks     Task[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("projects")
+}
+
+model Label {
+  id     String      @id @default(cuid())
+  name   String      @unique
+  color  String?
+  tasks  TaskLabel[]
+
+  @@map("labels")
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(NO_PRIORITY)
+  dueDate     DateTime?
+  projectId   String?
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  reporterId  String?
+  reporter    User?        @relation("TaskReporter", fields: [reporterId], references: [id])
+  position    Int          @default(0)
+
+  members     TaskMember[]
+  labels      TaskLabel[]
+  subtasks    Subtask[]
+  comments    Comment[]
+  activityLogs ActivityLog[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("tasks")
+}
+
+model TaskMember {
+  taskId String
+  userId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, userId])
+  @@map("task_members")
+}
+
+model TaskLabel {
+  taskId  String
+  labelId String
+  task    Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, labelId])
+  @@map("task_labels")
+}
+
+model Subtask {
+  id        String        @id @default(cuid())
+  taskId    String
+  task      Task          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  title     String
+  priority  TaskPriority  @default(NO_PRIORITY)
+  dueDate   DateTime?
+  members   SubtaskMember[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("subtasks")
+}
+
+model SubtaskMember {
+  subtaskId String
+  userId    String
+  subtask   Subtask @relation(fields: [subtaskId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([subtaskId, userId])
+  @@map("subtask_members")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+
+  @@map("comments")
+}
+
+// Powers the "Updates" activity feed on the task detail screen
+// (e.g. "You changed priority from No Priority to Urgent")
+model ActivityLog {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  createdAt DateTime @default(now())
+
+  @@map("activity_logs")
+}
