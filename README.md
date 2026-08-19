@@ -67,4 +67,4 @@ _(fill this in as you polish pixel-level details — spacing, exact colors, icon
 
 ## Part 2 — Product Understanding (AbleSpace Take Data / Caseload)
 
-See `PART2_PRODUCT_WALKTHROUGH.md` (or the submitted video) — not included in this scaffold since it requires live access to the AbleSpace product.
+See `PART2_PRODUCT_WALKTHROUGH.md`
